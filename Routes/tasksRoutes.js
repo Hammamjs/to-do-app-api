@@ -19,11 +19,11 @@ const {
 } = require("../utils/validator/tasksValidator");
 const router = express.Router({ mergeParams: true });
 
-router.use(auth.protect);
+// router.use(auth.protect);
 
 router
   .route("/")
-  .get(auth.allowedTo("user"), getTasks)
+  .get(getTasks)
   .post(
     auth.protect,
     auth.allowedTo("user"),

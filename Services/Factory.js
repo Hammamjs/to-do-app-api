@@ -43,11 +43,14 @@ exports.deleteOne = (Model) =>
   });
 
 exports.getOne = (Model) =>
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res, next) => {
     const document = await Model.findById(req.params.id);
     if (!document)
       return next(
-        new ApiError(`There is no document with this id : ${req.params.userId}`)
+        new ApiError(
+          `There is no document with this id : ${req.params.id}`,
+          404
+        )
       );
     res.status(200).json({ status: "Success", data: document });
   });

@@ -9,6 +9,7 @@ const cors = require("cors");
 // security package
 const xssFilters = require("xss-filters");
 const mongoSanitize = require("express-mongo-sanitize");
+const { rateLimit } = require("express-rate-limit");
 
 const Connection = require("./DataBase/db");
 const globalErrorMiddleware = require("./Middleware/globalErrorMiddleware");
@@ -25,7 +26,7 @@ Connection();
 app.use(cors());
 app.options("*", cors());
 
-app.use(express.json());
+app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "puplic")));
 // get cookie from body
 app.use(cookieParser());
@@ -42,6 +43,15 @@ app.use((req, res, next) => {
 });
 
 app.use(mongoSanitize());
+
+// give route limit access like Auth/ and change password
+const limit = rateLimit({
+  windowMs: 20 * 60 * 1000,
+  limit: 10,
+  message: "To many Request from this IP please wait for couple minutes",
+});
+// Just for authentication routes
+app.use("api/v2/auth/", limit);
 
 // Mount routes
 mount(app);
