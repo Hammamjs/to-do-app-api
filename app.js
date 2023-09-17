@@ -55,7 +55,14 @@ app.use("api/v2/auth/", limit);
 
 // Mount routes
 mount(app);
-
+app.all("*", (req, res) => {
+  res
+    .status(404)
+    .json({
+      status: "fail",
+      message: `This route not exist ${req.originalUrl}`,
+    });
+});
 app.use(globalErrorMiddleware);
 const port = process.env.PORT | 8000;
 const server = app.listen(port, () => {
