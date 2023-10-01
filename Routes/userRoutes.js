@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const {
   createUser,
   getUsers,
@@ -12,36 +12,36 @@ const {
   verifyPassResetCode,
   resetPassowrd,
   changePassword,
-} = require("../Services/userServices");
+} = require('../Services/userServices');
 
-const tasksRoutes = require("./tasksRoutes");
-const auth = require("../Services/authServices");
+const tasksRoutes = require('./tasksRoutes');
+const auth = require('../Services/authServices');
 const {
   getUserValidator,
   updateUserValidator,
   deleteUserValidator,
   changePasswordValidator,
   createUserValidator,
-} = require("../utils/validator/userValidator");
+} = require('../utils/validator/userValidator');
 const router = express.Router();
 
-router.use("/user/tasks", tasksRoutes);
+router.use('/:userId/tasks', tasksRoutes);
 
 router
-  .route("/")
-  .get(auth.protect, auth.allowedTo("admin"), getUsers)
+  .route('/')
+  .get(auth.protect, auth.allowedTo('admin'), getUsers)
   .post(createUserValidator, createUser);
-router.route("/deactivate").get(getDeactivatedUsers);
+router.route('/deactivate').get(getDeactivatedUsers);
 
 router
-  .route("/:id")
+  .route('/:id')
   .get(getUserValidator, getUser)
   .put(updateUserValidator, updateUser)
   .delete(deleteUserValidator, deleteUser);
 
-router.put("/:id/changePassword", changePasswordValidator, changePassword);
+router.put('/:id/changePassword', changePasswordValidator, changePassword);
 
-router.route("/:id/deactivate").put(deactivateUser);
-router.route("/:id/activate").post(ActivateUser);
+router.route('/:id/deactivate').put(deactivateUser);
+router.route('/:id/activate').post(ActivateUser);
 
 module.exports = router;

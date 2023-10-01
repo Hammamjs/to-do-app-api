@@ -1,47 +1,47 @@
-const { check } = require("express-validator");
-const slugify = require("slugify");
-const bcrypt = require("bcrypt");
+const { check } = require('express-validator');
+const slugify = require('slugify');
+const bcrypt = require('bcrypt');
 
-const middlewareValidator = require("../../Middleware/validatorMiddleware");
-const ApiError = require("../apiError");
-const User = require("../../Models/userModel");
+const middlewareValidator = require('../../Middleware/validatorMiddleware');
+const ApiError = require('../apiError');
+const User = require('../../Models/userModel');
 
 exports.createUserValidator = [
-  check("name")
+  check('name')
     .notEmpty()
-    .withMessage("Name required")
+    .withMessage('Name required')
     .isLength({ min: 3 })
     .custom((val, { req }) => {
       req.body.slug = slugify(val);
       return true;
     }),
 
-  check("email")
+  check('email')
     .notEmpty()
-    .withMessage("Email required")
+    .withMessage('Email required')
     .isEmail()
-    .withMessage("Please enter valid email ")
+    .withMessage('Please enter valid email ')
     .custom(async (val) => {
       console.log(val);
       await User.find({ email: val }).then((email) => {
         if (email)
           return Promise.reject(
-            new ApiError("This email is already used", 400)
+            new ApiError('This email is already used', 400)
           );
       });
     }),
 
-  check("password")
+  check('password')
     .notEmpty()
-    .withMessage("Password required")
+    .withMessage('Password required')
     .isLength({ min: 8 }),
-  check("passwordConfirm")
+  check('passwordConfirm')
     .notEmpty()
-    .withMessage("passwordConfirm required")
+    .withMessage('passwordConfirm required')
     .custom((val, { req }) => {
       if (req.body.password !== val)
         throw Promise.reject(
-          new ApiError("Password and passwordConfirm must match")
+          new ApiError('Password and passwordConfirm must match')
         );
       return true;
     }),
@@ -50,47 +50,47 @@ exports.createUserValidator = [
 ];
 
 exports.getUserValidator = [
-  check("id").isMongoId().withMessage("Invalid user id"),
+  check('id').isMongoId().withMessage('Invalid user id'),
   middlewareValidator,
 ];
 
 exports.getUserValidator = [
-  check("id").isMongoId().withMessage("Invalid user id"),
+  check('id').isMongoId().withMessage('Invalid user id'),
   middlewareValidator,
 ];
 
 exports.updateUserValidator = [
-  check("id")
+  check('id')
     .notEmpty()
-    .withMessage("User id required")
+    .withMessage('User id required')
     .isMongoId()
-    .withMessage("Invalid user id"),
+    .withMessage('Invalid user id'),
   middlewareValidator,
 ];
 
 exports.deleteUserValidator = [
-  check("id").isMongoId().withMessage("Invalid user id"),
+  check('id').isMongoId().withMessage('Invalid user id'),
   middlewareValidator,
 ];
 
 exports.changePasswordValidator = [
-  check("password")
+  check('password')
     .notEmpty()
-    .withMessage("Password required")
+    .withMessage('Password required')
     .custom(async (val, { req }) => {
       const user = await User.findById(req.params.id);
-      console.log(val, user.password);
+      if (!user) throw new ApiError('User not exist any more', 404);
       const isMatch = await bcrypt.compare(val, user.password);
       if (!isMatch)
-        return Promise.reject(new ApiError("Old password is inccorect", 400));
+        return Promise.reject(new ApiError('Old password is inccorect', 400));
     }),
-  check("newPassword").notEmpty().withMessage("Password required"),
-  check("passwordConfirm")
+  check('newPassword').notEmpty().withMessage('Password required'),
+  check('passwordConfirm')
     .notEmpty()
-    .withMessage("PasswordConfirm required")
+    .withMessage('PasswordConfirm required')
     .custom((val, { req }) => {
       if (req.body.newPassword !== val)
-        throw new Error("Password and passwordConfirm missMatch ");
+        throw new Error('Password and passwordConfirm missMatch ');
       return true;
     }),
   middlewareValidator,

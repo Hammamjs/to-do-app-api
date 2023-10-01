@@ -1,14 +1,15 @@
-const asyncHandler = require("express-async-handler");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { DateTime } = require("luxon");
-const crypto = require("crypto");
+const asyncHandler = require('express-async-handler');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { DateTime } = require('luxon');
+const crypto = require('crypto');
 
-const User = require("../Models/userModel");
+const User = require('../Models/userModel');
 
-const { createToken, sendCookietoBrowser } = require("../utils/createToken");
-const ApiError = require("../utils/apiError");
-const sendEmail = require("../utils/sendEmail");
+const { createToken, sendCookietoBrowser } = require('../utils/createToken');
+const ApiError = require('../utils/apiError');
+const sendEmail = require('../utils/sendEmail');
+const { requiredData } = require('../utils/info');
 
 exports.signup = asyncHandler(async (req, res) => {
   const user = await User.create({
@@ -20,37 +21,40 @@ exports.signup = asyncHandler(async (req, res) => {
   });
   const token = createToken(user._id);
   sendCookietoBrowser(res, token);
-  res.status(201).json({ status: "Success", data: user, token });
+  res.status(201).json({ status: 'Success', data: requiredData(user), token });
 });
 
 exports.login = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new ApiError('Email or password inncorect'));
+  }
   const isMatch = await bcrypt.compare(req.body.password, user.password);
-  if (!user || !isMatch) {
-    return next(new ApiError("Email or password inncorect"));
+  if (!isMatch) {
+    return next(new ApiError('Email or password inncorect'));
   }
   const token = createToken(user._id);
   sendCookietoBrowser(res, token);
-  res.status(200).json({ status: "Success", data: user, token });
+  res.status(200).json({ status: 'Success', data: requiredData(user), token });
 });
 
 exports.protect = asyncHandler(async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    req.headers.authorization.startsWith('Bearer')
   ) {
-    token = req.headers.authorization.split(" ")[1];
+    token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
-  if (!token) return next(new ApiError("Please login again to get access"));
+  if (!token) return next(new ApiError('Please login again to get access'));
 
   const decoded = jwt.verify(token, process.env.TOKEN_SECRET_KEY);
   const currentUser = await User.findById(decoded.id);
 
   if (!currentUser)
-    return next(new ApiError("This token that belong to this user not exist"));
+    return next(new ApiError('This token that belong to this user not exist'));
   const changePasswordTimestamp = parseInt(
     currentUser.passwordChangeAt.getTime() / 1000,
     10
@@ -59,7 +63,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
     if (changePasswordTimestamp > decoded.iat)
       return next(
         new ApiError(
-          "Look like user change password currently please login again ..."
+          'Look like user change password currently please login again ...'
         )
       );
   }
@@ -69,18 +73,18 @@ exports.protect = asyncHandler(async (req, res, next) => {
 exports.allowedTo = (...roles) =>
   asyncHandler((req, res, next) => {
     if (!roles.includes(req.user.role))
-      return next(new ApiError("You dont have access for this section"));
+      return next(new ApiError('You dont have access for this section'));
     next();
   });
 
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
-  if (!user) return next(new ApiError("This user not exist"));
+  if (!user) return next(new ApiError('This user not exist'));
   const resetCode = Math.floor(900000 + Math.random() * 100000).toString();
   const hashedResetCode = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(resetCode)
-    .digest("hex");
+    .digest('hex');
 
   user.passwordResetCode = hashedResetCode;
   user.passwordCodeExpires = Date.now() + 10 * 60 * 1000;
@@ -92,7 +96,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   try {
     await sendEmail({
       email: user.email,
-      subject: "Password reset code valid for 10 mins",
+      subject: 'Password reset code valid for 10 mins',
       message,
     });
   } catch (err) {
@@ -101,21 +105,21 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     user.passwordCodeExpires = undefined;
     await user.save();
     return next(
-      new ApiError("We got error to send reset code to your email", 400)
+      new ApiError('We got error to send reset code to your email', 400)
     );
   }
   res.status(200).json({
-    status: "Success",
+    status: 'Success',
     message:
-      "Reset code send successfully if email not appear in your inbox check spam area",
+      'Reset code send successfully if email not appear in your inbox check spam area',
   });
 });
 
 exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
   const hashedResetCode = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(req.body.resetCode)
-    .digest("hex");
+    .digest('hex');
 
   const user = await User.findOne({
     passwordResetCode: hashedResetCode,
@@ -123,17 +127,17 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
   });
   if (!user)
     return next(
-      new ApiError("This user not exist or password reset code expired", 400)
+      new ApiError('This user not exist or password reset code expired', 400)
     );
   user.passwordVerify = true;
   await user.save();
-  res.status(200).json({ status: "Success" });
+  res.status(200).json({ status: 'Success' });
 });
 
 exports.resetPassowrd = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
-  if (!user) return next(new ApiError("This user not exist", 400));
+  if (!user) return next(new ApiError('This user not exist', 400));
   (user.password = req.body.newPassword), (user.passwordResetCode = undefined);
   user.passwordVerify = undefined;
   user.passwordCodeExpires = undefined;
@@ -144,5 +148,10 @@ exports.resetPassowrd = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json({ status: "Success", message: "Reset password complete", token });
+    .json({
+      status: 'Success',
+      message: 'Reset password complete',
+      data: requiredData(user),
+      token,
+    });
 });
