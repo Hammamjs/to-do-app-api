@@ -25,10 +25,11 @@ Connection();
 // Enable other domain to access application
 app.use(
   cors({
+    origin: '*',
     credentials: true,
   })
 );
-// app.options('*', cors());
+app.options('*', cors());
 
 app.use(express.json({ limit: '20kb' }));
 app.use(express.static(path.join(__dirname, 'puplic')));
