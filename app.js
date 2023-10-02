@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
-const { origin } = require('./DataBase/allowAccessOrigins');
+const origin = require('./DataBase/allowAccessOrigins');
 // security package
 const xssFilters = require('xss-filters');
 const mongoSanitize = require('express-mongo-sanitize');
