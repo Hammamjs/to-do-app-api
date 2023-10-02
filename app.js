@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
+const { origin } = require('./DataBase/allowAccessOrigins');
 // security package
 const xssFilters = require('xss-filters');
 const mongoSanitize = require('express-mongo-sanitize');
@@ -25,7 +26,7 @@ Connection();
 // Enable other domain to access application
 app.use(
   cors({
-    origin: '*',
+    origin,
     credentials: true,
   })
 );
