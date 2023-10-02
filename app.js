@@ -28,7 +28,7 @@ app.use(
     credentials: true,
   })
 );
-app.options('*', cors());
+// app.options('*', cors());
 
 app.use(express.json({ limit: '20kb' }));
 app.use(express.static(path.join(__dirname, 'puplic')));
