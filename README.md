@@ -25,7 +25,7 @@ This project is a backend API for a To-Do application. It provides endpoints to 
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:Hammamjs/to-do-app-api.git
    ```
 2. Install dependencies:
    ```bash
