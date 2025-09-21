@@ -1,15 +1,8 @@
 const asyncHandler = require('express-async-handler');
-const Task = require('../Models/tasksModel');
-const User = require('../Models/userModel');
+const Task = require('../models/tasksModel');
+const User = require('../models/userModel');
 const factory = require('./Factory');
 
-// insert user id
-exports.insertUserId = asyncHandler((req, res, next) => {
-  let objectFilter = { ...req.body };
-  if (!objectFilter.user) objectFilter.user = req.user._id.toString();
-  req.object = objectFilter;
-  next();
-});
 // @desc Create task
 // @route POST api/v2/tasks
 // @access protected user

@@ -3,7 +3,7 @@ const ApiError = require('../utils/apiError');
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res) => {
-    const doc = await Model.create(req.object);
+    const doc = await Model.create(req.body);
     res.status(201).json({
       status: 'Success',
       message: 'Document successfully created',
@@ -13,13 +13,7 @@ exports.createOne = (Model) =>
 
 exports.getAll = (Model) =>
   asyncHandler(async (req, res, next) => {
-    let filterObj = {};
-    if (req.params.userId) filterObj = { user: req.params.userId };
-
-    const document = await Model.find(filterObj);
-    if (!document) {
-      return next(new ApiError('No document Found', 404));
-    }
+    const document = await Model.find(req.filterObj).lean();
     res.status(200).json({
       status: 'Success',
       data: document,

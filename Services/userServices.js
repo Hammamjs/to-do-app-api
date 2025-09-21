@@ -1,11 +1,9 @@
-const User = require('../Models/userModel');
-
-const { requiredData } = require('../utils/info');
-const { createToken, sendCookietoBrowser } = require('../utils/createToken');
+const User = require('../models/userModel');
 const factory = require('./Factory');
 
+const { requiredData } = require('../utils/info');
+
 const asyncHandler = require('express-async-handler');
-const bcrypt = require('bcrypt');
 
 // @desc Create new User
 // @route POST api/v2/users
@@ -78,26 +76,6 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
 // @access protected user
 exports.deleteUser = factory.deleteOne(User);
 
-// @desc change password for User
-// @route put api/v2/users/changePassword
-// @access protected user
-exports.changePassword = asyncHandler(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    {
-      password: await bcrypt.hash(req.body.newPassword, 12),
-    },
-    { new: true }
-  );
-  const token = createToken(user._id);
-  sendCookietoBrowser(res, token);
-  res.status(200).json({
-    status: 'Success',
-    message: 'Password updated successfully',
-    token,
-  });
-});
-
 // @desc deactivate User account
 // @route put api/v2/users/:id/deactivte
 // @access protected user
@@ -114,7 +92,7 @@ exports.deactivateUser = asyncHandler(async (req, res, next) => {
 // @desc active User account
 // @route put api/v2/users/:id/activte
 // @access protected user
-exports.ActivateUser = asyncHandler(async (req, res, next) => {
+exports.activateUser = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.params.id);
   if (!user) return next(new ApiError('This id not exist'), 404);
   user.active = true;

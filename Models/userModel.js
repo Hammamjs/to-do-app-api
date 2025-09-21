@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose');
 const bcrypt = require('bcrypt');
+const { models } = require('mongoose');
 
 const userModel = new Schema(
   {
@@ -20,7 +21,7 @@ const userModel = new Schema(
     },
     password: {
       type: String,
-      required: [true, 'Email required'],
+      required: [true, 'Password required'],
       trim: true,
     },
     role: {
@@ -36,6 +37,8 @@ const userModel = new Schema(
     passwordVerify: Boolean,
     passwordCodeExpires: Date,
     passwordResetCode: String,
+    refreshToken: String,
+    passwordResetTempToken: String,
   },
   { timestamps: true }
 );
@@ -46,4 +49,4 @@ userModel.pre('save', async function (next) {
   next();
 });
 
-module.exports = model('user', userModel);
+module.exports = models.user || model('user', userModel);

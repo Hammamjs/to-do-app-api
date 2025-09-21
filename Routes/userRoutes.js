@@ -7,22 +7,17 @@ const {
   deleteUser,
   deactivateUser,
   getDeactivatedUsers,
-  ActivateUser,
-  forgotPassword,
-  verifyPassResetCode,
-  resetPassowrd,
-  changePassword,
-} = require('../Services/userServices');
+  activateUser,
+} = require('../services/userServices');
 
 const tasksRoutes = require('./tasksRoutes');
-const auth = require('../Services/authServices');
+const auth = require('../services/authServices');
 const {
   getUserValidator,
   updateUserValidator,
   deleteUserValidator,
-  changePasswordValidator,
   createUserValidator,
-} = require('../utils/validator/userValidator');
+} = require('../validator/userValidator');
 const router = express.Router();
 
 router.use('/:userId/tasks', tasksRoutes);
@@ -39,9 +34,7 @@ router
   .put(updateUserValidator, updateUser)
   .delete(deleteUserValidator, deleteUser);
 
-router.put('/:id/changePassword', changePasswordValidator, changePassword);
-
-router.route('/:id/deactivate').put(deactivateUser);
-router.route('/:id/activate').post(ActivateUser);
+router.put('/:id/deactivate', deactivateUser);
+router.post('/:id/activate', activateUser);
 
 module.exports = router;

@@ -6,34 +6,29 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
-const origin = require('./DataBase/allowAccessOrigins');
+const corsOptions = require('./config/corsOption');
 // security package
 const xssFilters = require('xss-filters');
 const mongoSanitize = require('express-mongo-sanitize');
 const { rateLimit } = require('express-rate-limit');
 
-const Connection = require('./DataBase/db');
-const globalErrorMiddleware = require('./Middleware/globalErrorMiddleware');
+const Connection = require('./config/db');
+const globalErrorMiddleware = require('./middleware/globalErrorMiddleware');
 
-const { mount } = require('./Routes/index');
+const { mount } = require('./routes/index');
 
-dotenv.config({ path: 'config.env' });
+dotenv.config({ path: '.env' });
 
 const app = express();
 // start DataBase Connection
 Connection();
 
 // Enable other domain to access application
-app.use(
-  cors({
-    origin,
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 app.options('*', cors());
 
 app.use(express.json({ limit: '20kb' }));
-app.use(express.static(path.join(__dirname, 'puplic')));
+app.use(express.static(path.join(__dirname, 'public')));
 // get cookie from body
 app.use(cookieParser());
 
@@ -61,20 +56,16 @@ app.use('api/v2/auth/', limit);
 
 // Mount routes
 mount(app);
-app.all('*', (req, res) => {
-  res.status(404).json({
-    status: 'fail',
-    message: `This route not exist ${req.originalUrl}`,
-  });
-});
+
 app.use(globalErrorMiddleware);
-const port = process.env.PORT | 8000;
+const port = process.env.PORT || 3500;
 const server = app.listen(port, () => {
   console.log('Server start running at port: ' + port);
 });
 
 process.on('unhandledRejection', (err) => {
   console.log(`unhandledRejection occur: ${err.name} | ${err.message}`);
+  console.log(err);
   server.close(() => {
     console.log('server shutting down');
     process.exit(1);

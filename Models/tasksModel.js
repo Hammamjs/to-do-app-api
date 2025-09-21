@@ -1,32 +1,29 @@
-const { Schem, model, Schema } = require("mongoose");
-const UserModel = require("./userModel");
+const { model, Schema, Types } = require('mongoose');
 
 const TasksModel = new Schema(
   {
     title: {
       type: String,
-      minlength: [5, "Title is too short"],
+      minlength: [3, 'Title is too short'],
       required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-      minlength: [5, "Description is too short"],
     },
     slug: {
       type: String,
       lowercase: true,
     },
-    date: String,
+    date: {
+      type: Date,
+      default: Date.now,
+    },
     status: {
       type: String,
-      enum: ["ongoing", "complete", "incomplete"],
-      default: "incomplete",
+      enum: ['pending', 'in-progress', 'completed'],
+      default: 'pending',
     },
     user: {
       type: Schema.ObjectId,
-      ref: "user",
-      required: [true, "Task should belong to user"],
+      ref: 'user',
+      required: [true, 'Task should belong to user'],
     },
   },
   { timestamps: true }
@@ -34,10 +31,10 @@ const TasksModel = new Schema(
 
 TasksModel.pre(/^find/, function (next) {
   this.populate({
-    path: "user",
-    select: "name _id",
+    path: 'user',
+    select: 'name _id',
   });
   next();
 });
 
-module.exports = model("tasks", TasksModel);
+module.exports = model('tasks', TasksModel);

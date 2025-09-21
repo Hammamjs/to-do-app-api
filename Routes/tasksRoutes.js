@@ -7,26 +7,28 @@ const {
   deleteTask,
   ongoingTask,
   completeTask,
-  insertUserId,
-} = require('../Services/tasksServices');
+} = require('../services/tasksServices');
 
-const auth = require('../Services/authServices');
+const protectdRoute = require('../middleware/protectedRoute');
+const allowedTo = require('../middleware/allowedTo');
+const { setUserFilter, insertUserId } = require('../middleware/FilterBasedOn');
+
 const {
   createTaskValidator,
   getTaskValidator,
   deleteTaskValidator,
   updateTaskValidator,
-} = require('../utils/validator/tasksValidator');
+} = require('../validator/tasksValidator');
 const router = express.Router({ mergeParams: true });
 
-// router.use(auth.protect);
+// router.use(protectdRoute);
 
 router
   .route('/')
-  .get(getTasks)
+  .get(protectdRoute, allowedTo('user'), setUserFilter, getTasks)
   .post(
-    auth.protect,
-    auth.allowedTo('user'),
+    protectdRoute,
+    allowedTo('user'),
     insertUserId,
     createTaskValidator,
     createTask
@@ -34,11 +36,11 @@ router
 
 router
   .route('/:id')
-  .get(auth.protect, auth.allowedTo('admin', 'user'), getTaskValidator, getTask)
+  .get(protectdRoute, allowedTo('admin', 'user'), getTaskValidator, getTask)
   .put(updateTaskValidator, updateTask)
   .delete(
-    auth.protect,
-    auth.allowedTo('user', 'admin'),
+    protectdRoute,
+    allowedTo('user', 'admin'),
     deleteTaskValidator,
     deleteTask
   );
@@ -46,14 +48,14 @@ router
 // Change task status
 router.put(
   '/:id/status/ongoing',
-  auth.protect,
-  auth.allowedTo('user'),
+  protectdRoute,
+  allowedTo('user'),
   ongoingTask
 );
 router.put(
   '/:id/status/complete',
-  auth.protect,
-  auth.allowedTo('user'),
+  protectdRoute,
+  allowedTo('user'),
   completeTask
 );
 
